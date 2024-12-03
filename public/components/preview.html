@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWT Volunteer Form Preview</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div id="root"></div>
+    <script>
+        // Temporary mock components until we build them
+        const Step1 = () => {
+            return React.createElement('div', { className: 'step-content' },
+                React.createElement('h3', { className: 'text-xl font-bold mb-4' }, 'Select Volunteer Type'),
+                React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' }, 
+                    ['Pilot', 'Ground Transport', 'Foster', 'Administrative', 'Coordinator'].map(type =>
+                        React.createElement('button', { 
+                            key: type,
+                            className: 'p-4 border rounded-lg hover:border-blue-500 transition-colors'
+                        }, type)
+                    )
+                )
+            );
+        };
+
+        // Render the form
+        ReactDOM.render(
+            React.createElement(VolunteerRegistrationForm),
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<?php
+/**
+ * Fired during plugin activation
+ */
+class AWT_Volunteer_Activator {
+
+    public static function activate() {
+        self::create_database_tables();
+        self::create_roles_and_capabilities();
+    }
+
+    private static function create_database_tables() {
+        global $wpdb;
+        $charset_collate = $wpdb->get_charset_collate();
+
+        // Volunteers table
+        $table_volunteers = $wpdb->prefix . 'awt_volunteers';
+        $sql_volunteers = "CREATE TABLE IF NOT EXISTS $table_volunteers (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            volunteer_type VARCHAR(50) NOT NULL,
+            status VARCHAR(20) NOT NULL DEFAULT 'pending',
+            availability_json JSON,
+            skills_json JSON,
+            background_check_date DATE,
+            training_completed_date DATE,
+            last_active_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY user_id (user_id)
+        ) $charset_collate;";
+
+        // Certifications table for pilots
+        $table_certifications = $wpdb->prefix . 'awt_pilot_certifications';
+        $sql_certifications = "CREATE TABLE IF NOT EXISTS $table_certifications (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            volunteer_id mediumint(9) NOT NULL,
+            certificate_type VARCHAR(100) NOT NULL,
+            certificate_number VARCHAR(100),
+            expiration_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY volunteer_id (volunteer_id)
+        ) $charset_collate;";
+
+        // Availability schedule
+        $table_schedule = $wpdb->prefix . 'awt_availability';
+        $sql_schedule = "CREATE TABLE IF NOT EXISTS $table_schedule (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            volunteer_id mediumint(9) NOT NULL,
+            date_start DATETIME NOT NULL,
+            date_end DATETIME NOT NULL,
+            recurring BOOLEAN DEFAULT FALSE,
+            recurring_pattern VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY volunteer_id (volunteer_id)
+        ) $charset_collate;";
+
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_volunteers);
+        dbDelta($sql_certifications);
+        dbDelta($sql_schedule);
+    }
+
+    private static function create_roles_and_capabilities() {
+        // Add custom role for volunteers
+        add_role(
+            'awt_volunteer',
+            __('AWT Volunteer', 'awt-volunteer'),
+            array(
+                'read' => true,
+                'edit_posts' => false,
+                'delete_posts' => false,
+                'publish_posts' => false,
+                'upload_files' => true,
+            )
+        );
+
+        // Add custom capabilities to admin
+        $admin_role = get_role('administrator');
+        $admin_role->add_cap('manage_awt_volunteers');
+        $admin_role->add_cap('view_awt_volunteer_reports');
+    }
+}
